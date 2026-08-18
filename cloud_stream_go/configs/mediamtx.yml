@@ -1,0 +1,22 @@
+logLevel: info
+logDestinations: [stdout]
+
+api: yes
+apiAddress: :9997
+
+rtmp: yes
+rtmpAddress: :1935
+
+hls: yes
+hlsAddress: :8888
+hlsAlwaysRemux: yes
+hlsVariant: lowLatency
+hlsAllowOrigin: '*'
+
+srt: yes
+srtAddress: :8890
+
+paths:
+  all:
+    source: publisher
+

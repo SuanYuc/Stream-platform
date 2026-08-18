@@ -1,0 +1,10 @@
+{
+  "listen": ":8088",
+  "public_host": "<YOUR_SERVER_IP>",
+  "api_token": "change-this-token",
+  "rtmp_port": 1935,
+  "hls_port": 8888,
+  "ffmpeg_path": "C:\\nsy-cloud-stream\\bin\\ffmpeg.exe",
+  "log_dir": "C:\\nsy-cloud-stream\\logs"
+}
+

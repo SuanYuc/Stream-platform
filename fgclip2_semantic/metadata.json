@@ -1,0 +1,48 @@
+{
+  "model_family": "FG-CLIP2",
+  "checkpoint": "checkpoints/finehard_auto_train_50",
+  "base_model": "qihoo360/fg-clip2-base",
+  "opset": 17,
+  "image_encoder": {
+    "file": "fgclip2_image_encoder.onnx",
+    "inputs": {
+      "pixel_values": [
+        1,
+        128,
+        768
+      ],
+      "pixel_attention_mask": [
+        1,
+        128
+      ],
+      "spatial_shapes": [
+        1,
+        2
+      ]
+    },
+    "output": "image_embeds",
+    "normalized": true
+  },
+  "text_encoder": {
+    "file": "fgclip2_text_encoder.onnx",
+    "inputs": {
+      "input_ids": [
+        1,
+        64
+      ],
+      "attention_mask": [
+        1,
+        64
+      ]
+    },
+    "output": "text_embeds",
+    "normalized": true
+  },
+  "runtime_score": "cosine = image_embeds @ text_embeds.T",
+  "validation": {
+    "image_max_abs_diff": 8.940696716308594e-07,
+    "text_max_abs_diff": 1.3783574104309082e-07,
+    "torch_similarity": 0.11133728921413422,
+    "onnx_similarity": 0.11133718490600586
+  }
+}

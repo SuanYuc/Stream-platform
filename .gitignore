@@ -1,0 +1,56 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+
+# Runtime outputs
+outputs/
+logs/
+*.log
+*.tmp
+*.bak
+
+# Local secrets / server access
+*.rdp
+*.pem
+*.key
+.env
+.env.*
+config.local.*
+settings.local.*
+secrets.*
+credentials.*
+
+# Build / deploy artifacts
+dist/
+build/
+*.spec
+*.exe
+!cloud_stream_go/cloud-stream-server.exe
+*.zip
+cloud_stream_go_deploy_*.zip
+!cloud_stream_go_deploy_20260817_210224.zip
+
+# AI model binaries
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.engine
+
+# OS
+.DS_Store
+Thumbs.db

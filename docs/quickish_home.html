@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var t=localStorage.getItem('qk-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<title>Quickish · host HTML, sites & AI-made pages</title>
+<meta name="description" content="Made a page with AI or by hand? Quickish gives it a live URL in seconds, public or private. Drop a folder, a zip, or a single file. Run one command, or just ask your AI to publish it.">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/site.css">
+<style>
+  /* Landing-page styles only. The shared foundation — design tokens, fonts, header,
+     footer, eyebrow, the band system and buttons — lives in /site.css. This block is
+     just what is specific to the home page (hero, dropzone, CLI block, window/chat
+     visuals, and pricing). */
+
+  /* ---- HERO (full screen) ---- */
+  .hero {
+    min-height: calc(100vh - 64px);
+    display: flex; flex-direction: column; padding: 12px 24px 26px;
+  }
+  .hero-main {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; gap: 4px;
+  }
+  .terminal {
+    font-family: var(--mono); font-size: clamp(20px, 4.6vw, 46px); font-weight: 700; letter-spacing: -0.02em;
+    white-space: nowrap; min-height: 1.3em; display: flex; align-items: center;
+  }
+  .prompt { color: var(--accent); margin-right: .5ch; }
+  .cursor { display: inline-block; width: .58ch; height: .92em; margin-left: 2px; vertical-align: baseline;
+    background: var(--accent); transform: translateY(-0.06em); animation: blink 1.05s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .lead { font-size: clamp(16px, 2.5vw, 22px); font-weight: 500; margin: 18px 0 16px; }
+
+  .freeline { text-align: center; max-width: 600px; margin: 20px auto 0; font-size: clamp(13px, 1.8vw, 15px); color: var(--dim); }
+  .freeline b { color: var(--accent-text); font-weight: 600; }
+
+  /* ---- Try-it dropzone (instant onboarding) ---- */
+  .trydrop { width: 100%; max-width: 600px; margin: 22px auto 8px; border: 1.5px dashed var(--line);
+    border-radius: var(--r-xl); background: color-mix(in srgb, var(--fg) 3%, transparent); cursor: pointer;
+    transition: border-color .15s, background .15s, transform .12s; }
+  .trydrop:hover { border-color: var(--accent); }
+  .trydrop.drag { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); transform: scale(1.012); }
+  .trydrop-inner { padding: 44px 30px; }
+  .trydrop svg { width: 36px; height: 36px; color: var(--accent); margin-bottom: 10px; }
+  .trydrop-main { font-size: clamp(16px, 2.4vw, 20px); font-weight: 600; }
+  .trydrop-main b { color: var(--accent-text); }
+  .trydrop-sub { color: var(--dim); font-size: 14px; margin-top: 5px; }
+  /* the hero's single green action: green fill, hard offset drop, flattens into its shadow on press */
+  .trydrop-btn { margin-top: 16px; font-family: var(--sans); font-size: 13.5px; font-weight: 700; background: var(--accent);
+    color: #0b0b0c; border: 0; border-radius: 999px; padding: 10px 20px; cursor: pointer;
+    box-shadow: 4px 4px 0 var(--hard-caster); transition: transform .12s, box-shadow .12s; }
+  .trydrop-btn:hover { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 var(--hard-caster); }
+  .trydrop-btn:active { transform: translate(4px,4px); box-shadow: 0 0 0 var(--hard-caster); }
+  .tryresult { width: 100%; max-width: 600px; margin: 20px auto 8px; border: 1px solid var(--line);
+    border-radius: var(--r-lg); padding: 24px; }
+  .tryresult .live { font-family: var(--mono); font-size: 11px; color: var(--accent-text); font-weight: 700; text-transform: uppercase; letter-spacing: .14em; }
+  .tryresult a.url { display: inline-block; margin: 9px 0 2px; font-family: var(--mono); font-size: clamp(14px, 2.2vw, 18px);
+    font-weight: 500; color: var(--fg); word-break: break-all; text-decoration: none; border-bottom: 2px solid var(--accent); }
+  .tryresult .meta { color: var(--dim); font-size: 12.5px; margin: 8px 0 16px; }
+  .tryrow { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .tryrow a, .tryrow button { font-family: var(--sans); font-size: 13.5px; font-weight: 600; border-radius: 999px;
+    padding: 9px 16px; cursor: pointer; text-decoration: none; border: 0; transition: transform .12s, box-shadow .12s; }
+  .try-primary { background: var(--accent); color: #0b0b0c; box-shadow: 3px 3px 0 var(--hard-caster); }
+  .try-primary:active { transform: translate(3px,3px); box-shadow: 0 0 0 var(--hard-caster); }
+  .try-ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+  .tryerr { color: #e0564d; font-size: 14px; margin-bottom: 12px; }
+  .spin { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--line);
+    border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -4px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---- "or" divider + install-command pill (under the dropzone) ---- */
+  .oralt { display: flex; align-items: center; gap: 14px; width: 100%; max-width: 600px;
+    margin: 16px auto 10px; color: var(--dim); font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; }
+  .oralt::before, .oralt::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  /* the terminal command block: dark in both skins, lifted on a hard drop; flattens when you copy */
+  .cmdpill { display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    width: 100%; max-width: 600px; margin: 10px auto 8px; border: 1px solid rgba(255,255,255,.14); border-radius: var(--r);
+    padding: 15px 14px 15px 20px; background: #141416; color: #e9e9e9; cursor: pointer;
+    box-shadow: 5px 5px 0 var(--hard-caster); transition: transform .12s, box-shadow .12s, border-color .15s; }
+  .cmdpill:hover { border-color: var(--accent); transform: translate(-1px,-1px); box-shadow: 6px 6px 0 var(--hard-caster); }
+  .cmdpill:active { transform: translate(5px,5px); box-shadow: 0 0 0 var(--hard-caster); }
+  .cmdpill .cmd { font-family: var(--mono); font-size: clamp(13.5px, 2.1vw, 17px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cmdpill .cmd .g { color: var(--accent); }
+  .cmdpill .cmdcopy { flex: none; font-family: var(--mono); font-size: 12px; font-weight: 600; background: rgba(255,255,255,.08);
+    color: #cfcfcf; border: 1px solid rgba(255,255,255,.18); border-radius: var(--r-sm); padding: 7px 13px; cursor: pointer; transition: .15s; }
+  .cmdpill .cmdcopy:hover { background: rgba(255,255,255,.16); color: #fff; }
+
+  /* ---- window visuals (compact; the home page has its own .win/.bar/.screen structure) ---- */
+  .win { flex: 1; display: flex; flex-direction: column; border: 1px solid var(--band-line, var(--win-border)); border-radius: var(--r-lg);
+    overflow: hidden; text-align: left; background: #141416; box-shadow: 6px 6px 0 var(--band-caster, rgba(255,255,255,.22)); }
+  .bar { display: flex; align-items: center; gap: 6px; padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,.07); background: #1c1c1f; }
+  .bar.light { background: #efeee8; border-bottom-color: #e0ded6; }
+  .bar.claude { background: var(--claude-paper); border-bottom-color: #e7e1d4; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #3a3a3a; }
+  .bar.light .dot { background: #cbc8bf; }
+  .bar.claude .dot { background: #dccfba; }
+  .bar .t { margin-left: 8px; font-family: var(--mono); font-size: 11.5px; color: #888; letter-spacing: .02em; }
+  .bar.light .t { color: #7a7568; }
+  .bar.claude .t { color: #8a7f6d; }
+  .bar.claude .spark { margin-left: 4px; color: var(--claude); font-size: 13px; }
+  .screen { flex: 1; padding: 16px 14px; font-family: var(--mono); font-size: 13px; line-height: 1.7; }
+  .screen.light { background: #f6f5f1; color: #0b0b0c; }
+  .screen.claude { background: var(--claude-paper); color: #2b2620; font-family: var(--sans); }
+
+  /* terminal panel: explicit light text so a terminal window reads on a light band too */
+  .screen.term { color: #e6e6e6; }
+  .term .g { color: var(--accent); }
+  .term .ok { color: var(--accent); margin-top: 8px; }
+  .term .cur { display: inline-block; width: .55ch; height: 1.05em; background: var(--accent);
+    transform: translateY(.16em); margin-left: 3px; animation: blink 1.05s steps(1) infinite; }
+
+  /* chat panel (Claude styling) */
+  .chat { display: flex; flex-direction: column; gap: 9px; }
+  .msg { max-width: 90%; padding: 8px 12px; border-radius: 13px; font-size: 12.5px; line-height: 1.5; }
+  .msg.ai { background: #fff; color: #2b2620; border: 1px solid #ece6da; border-bottom-left-radius: 4px; align-self: flex-start; }
+  .msg.me { background: var(--claude); color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; font-weight: 600; }
+  .composer { margin-top: 2px; display: flex; align-items: center; gap: 8px; border: 1px solid #e7e1d4;
+    border-radius: 999px; padding: 7px 8px 7px 13px; background: #fff; }
+  .composer .ph { flex: 1; color: #b7ab97; font-size: 12.5px; }
+  .composer .send { width: 24px; height: 24px; border-radius: 50%; background: var(--claude); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 13px; }
+  .ava { width: 22px; height: 22px; border-radius: 50%; background: #000; color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; }
+
+  /* ---- bands: home-page sizing on top of the shared band system in /site.css ---- */
+  .band { padding: 92px 24px; }
+  .band h2 { font-family: var(--sans); font-size: clamp(25px, 3.6vw, 40px); font-weight: 700; margin: 0 0 14px; letter-spacing: -.03em; line-height: 1.08; }
+  .band p { font-size: clamp(14px, 1.9vw, 17px); line-height: 1.7; max-width: 640px; margin: 0 0 16px; opacity: .92; }
+  /* terminal command line: dark in both bands */
+  .codeline { display: inline-flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,.14); border-radius: var(--r);
+    padding: 12px 18px; background: #141416; color: #e6e6e6; font-family: var(--mono); font-size: clamp(13px,1.8vw,15px); }
+  .band.light .codeline { background: #0b0b0c; color: #efeee8; border-color: #0b0b0c; }
+  .codeline .g { color: var(--accent); }
+
+  /* two-column band layout: text + a larger window */
+  .band-grid { display: grid; grid-template-columns: 1.02fr .98fr; gap: 52px; align-items: center; }
+  @media (max-width: 860px) { .band-grid { grid-template-columns: 1fr; gap: 34px; } }
+  .band-grid .txt { min-width: 0; } .band-grid .txt p:last-child { margin-bottom: 0; }
+  .band-grid.rev .txt { order: 2; } .band-grid.rev .band-visual { order: 1; }
+  @media (max-width: 860px) { .band-grid.rev .txt, .band-grid.rev .band-visual { order: 0; } }
+  .band-visual { min-width: 0; }
+  .band-visual .win { border-radius: var(--r-lg); }
+  .band-visual .bar { padding: 11px 15px; }
+  .band-visual .bar .dot { width: 12px; height: 12px; }
+  .band-visual .bar .t { font-size: 13px; }
+  .band-visual .screen { padding: 24px 22px; font-size: 15px; line-height: 1.9; min-height: 188px; }
+  .band-visual .chat { gap: 11px; }
+  .band-visual .msg { font-size: 14.5px; padding: 10px 14px; border-radius: 15px; }
+  .band-visual .composer { padding: 9px 10px 9px 15px; }
+  .band-visual .composer .ph { font-size: 14px; }
+  .band-visual .composer .send { width: 27px; height: 27px; font-size: 14px; }
+
+  /* drop-anything band: a tray of file-type chips */
+  .droptypes { font-family: var(--mono); font-size: 12.5px; color: var(--dim); letter-spacing: .02em; margin: 0; }
+  .droptypes b { color: var(--band-accent-text, var(--accent-text)); font-weight: 600; }
+  .filedrop { display: flex; flex-wrap: wrap; gap: 9px; align-content: flex-start; }
+  .chip { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 12.5px; padding: 8px 12px;
+    border: 1px solid rgba(255,255,255,.12); border-radius: var(--r-sm); background: #1c1c1f; color: #dcdcdc; white-space: nowrap; }
+  .chip .ic { font-size: 14px; line-height: 1; }
+  .chip.more { color: var(--accent); border-style: dashed; border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+
+  /* ---- pricing ---- */
+  .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 36px; }
+  @media (max-width: 760px) { .tiers { grid-template-columns: 1fr; } }
+  .tier { border: 1px solid #e7e3d8; border-radius: var(--r-lg); padding: 26px 22px; background: #fbfbf9; text-align: left; }
+  /* the recommended plan is the one tappable object here: it lifts on a hard ink drop */
+  .tier.feature { border-color: #0b0b0c; box-shadow: 6px 6px 0 #0b0b0c; }
+  .tier .name { font-family: var(--mono); font-size: 11px; color: #6a6a6a; letter-spacing: .14em; text-transform: uppercase; }
+  .tier .price { font-size: 34px; font-weight: 700; margin: 8px 0 2px; letter-spacing: -.02em; }
+  .tier .price small { font-size: 14px; font-weight: 500; color: #8a8478; }
+  .tier .note { font-family: var(--mono); font-size: 12px; color: #8a8478; min-height: 18px; }
+  .tier ul { list-style: none; padding: 0; margin: 18px 0 0; font-size: 13.5px; line-height: 1.5; }
+  .tier li { padding: 7px 0 7px 22px; position: relative; }
+  .tier li::before { content: "✓"; position: absolute; left: 0; color: var(--accent-deep); font-weight: 700; }
+  .tier .cta { display: block; text-align: center; margin-top: 22px; padding: 11px 18px; border-radius: 999px;
+    text-decoration: none; font-weight: 700; font-size: 14px; transition: transform .12s, box-shadow .12s; }
+  .tier .cta.primary { background: var(--accent); color: #0b0b0c; box-shadow: 4px 4px 0 #0b0b0c; }
+  .tier .cta.primary:active { transform: translate(4px,4px); box-shadow: 0 0 0 #0b0b0c; }
+  .tier .cta.dark { background: #0b0b0c; color: #fbfbf9; }
+  .tier .cta.ghost { border: 1px solid #d3cfc4; color: #0b0b0c; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand"><img class="mark" src="/quickish-mark.png" alt="Quickish"><span>quickish<b>_</b></span></div>
+    <div class="nav">
+      <nav class="navlinks" id="navlinks">
+        <a class="navlink" href="/features">Features</a>
+        <a class="navlink" href="/workspaces">Workspaces</a>
+        <a class="navlink" href="https://docs.quickish.website">Docs</a>
+        <a class="navlink" href="https://blog.quickish.website">Blog</a>
+      </nav>
+      <button class="menubtn" id="menubtn" aria-label="Menu" aria-expanded="false" aria-controls="navlinks">☰</button>
+      <button class="themebtn" id="themebtn" aria-label="Toggle light or dark">☀</button>
+      <a class="signin" id="navsignin" href="/login?cb=https://quickish.website/app"><span class="sfull">Sign in with Google</span><span class="sshort">Sign in</span></a>
+    </div>
+  </header>
+
+  <!-- ================= HERO ================= -->
+  <main class="hero">
+    <div class="hero-main">
+    <div class="terminal"><span class="prompt">&#10095;</span><span id="url"></span><span class="cursor"></span></div>
+    <p class="lead">Instantly publish HTML, sites &amp; AI-made pages.</p>
+
+    <!-- Try it: drop a file, get a URL (no sign-up) -->
+    <div class="trydrop" id="trydrop" role="button" tabindex="0" aria-label="Drop a file to publish">
+      <input type="file" id="tryfile" accept=".html,.htm,.zip,.pdf,.md,.markdown,.csv,.tsv,.txt,.png,.jpg,.jpeg,.gif,.svg,.webp" multiple hidden>
+      <div class="trydrop-inner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div class="trydrop-main">Try it: drop a <b>folder</b>, a <b>.zip</b>, or a single file</div>
+        <div class="trydrop-sub">HTML, PDF, Markdown, an image. Each gets a clean viewer, live in seconds.</div>
+        <button type="button" class="trydrop-btn" id="trypick">Choose a file</button>
+      </div>
+    </div>
+    <div class="tryresult" id="tryresult" hidden></div>
+
+    <div class="oralt"><span>or</span></div>
+    <div class="cmdpill" id="cmdpill" role="button" tabindex="0" title="Copy command">
+      <span class="cmd"><span class="g">$</span>&nbsp;npm i -g quickish &amp;&amp; quickish</span>
+      <button type="button" class="cmdcopy" id="cmdcopy">Copy</button>
+    </div>
+
+    </div>
+    <p class="freeline" id="freeline">Free for <b>one live page</b> per person. Workplace? Host your HTML where <b>only your org</b> can see it.</p>
+  </main>
+
+  <!-- ================= FOLD ·  the no-code ways come first ================= -->
+
+  <!-- 1 · Drop anything (no account, no code) -->
+  <section class="band dark">
+    <div class="inner band-grid">
+      <div class="txt">
+        <p class="eyebrow">Drop anything</p>
+        <h2>A folder, a zip, or a single file.</h2>
+        <p>No terminal, no account to start. Drag a whole folder of HTML, a <b>.zip</b>, or just one file onto the page. A standalone <b>PDF</b>, Markdown, CSV, or image gets a clean in-browser viewer, no code or build step. It’s live in seconds, and the list of what you can drop keeps growing.</p>
+        <p class="droptypes">HTML &middot; ZIP &middot; PDF &middot; Markdown &middot; CSV &middot; images &middot; <b>more soon</b></p>
+      </div>
+      <div class="band-visual">
+        <div class="win">
+          <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="t">drop to publish</span></div>
+          <div class="screen filedrop">
+            <span class="chip"><span class="ic">📁</span> my-site/</span>
+            <span class="chip"><span class="ic">🗜️</span> deck.zip</span>
+            <span class="chip"><span class="ic">📄</span> resume.pdf</span>
+            <span class="chip"><span class="ic">≡</span> notes.md</span>
+            <span class="chip"><span class="ic">🖼️</span> photo.png</span>
+            <span class="chip"><span class="ic">⌗</span> data.csv</span>
+            <span class="chip more">+ more soon</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · Remix a ready-made app + let any AI refine it (no code) -->
+  <section class="band light">
+    <div class="inner band-grid rev">
+      <div class="txt">
+        <p class="eyebrow">Remix &amp; refine with AI</p>
+        <h2>Remix a ready-made app, then let AI make it yours.</h2>
+        <p>Skip the blank page. Start from a working app and remix it into your own copy, then tell <b>Claude</b>, <b>ChatGPT</b>, or any AI agent what to change. It edits the page and publishes the update for you, so you get a real, shareable link without writing a line of code.</p>
+      </div>
+      <div class="band-visual">
+        <div class="win">
+          <div class="bar claude"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="t">Claude</span><span class="spark">&#10043;</span></div>
+          <div class="screen claude chat">
+            <div class="msg ai">Here’s the team kanban, remixed to your account.</div>
+            <div class="msg me">add due-date chips and publish it</div>
+            <div class="composer"><span class="ph">Ask Claude, ChatGPT, or any agent&hellip;</span><span class="send">&#8593;</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Publish from your terminal (for people who code) -->
+  <section class="band dark">
+    <div class="inner band-grid">
+      <div class="txt">
+        <p class="eyebrow">Publish from your terminal</p>
+        <h2>One command, anywhere you code.</h2>
+        <p>Prefer the shell? Point the CLI at a folder of HTML and it’s live in seconds. No build step, no config, no server. Perfect for coding agents and AI assistants that work in a terminal.</p>
+      </div>
+      <div class="band-visual">
+        <div class="win">
+          <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="t">terminal</span></div>
+          <div class="screen term">
+            <div><span class="g">$</span> npm i -g quickish</div>
+            <div><span class="g">$</span> quickish<span class="cur"></span></div>
+            <div class="ok">✓ live · you.quickish.site</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · Localish -->
+  <section class="band light">
+    <div class="inner band-grid rev">
+      <div class="txt">
+        <p class="eyebrow">Localish <span class="soon">New</span></p>
+        <h2>Your localhost, live at a private URL.</h2>
+        <p>Run <b>quickish&nbsp;--localish</b> and your running dev server gets a stable, private, sign-in-gated Quickish URL, hot reload and all. No deploy, no third-party tunnel, nothing exposed to the public web. Share a work-in-progress, or hand a coding agent a link to watch its own changes land.</p>
+      </div>
+      <div class="band-visual">
+        <div class="win">
+          <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="t">terminal</span></div>
+          <div class="screen term">
+            <div><span class="g">$</span> quickish --localish</div>
+            <div><span class="g">&#9679;</span> tunneling localhost:5173<span class="cur"></span></div>
+            <div class="ok">✓ live · you.quickish.site/_localish/app/</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · quickish dev — the whole backend, offline -->
+  <section class="band dark">
+    <div class="inner band-grid">
+      <div class="txt">
+        <p class="eyebrow">Develop offline <span class="soon">New</span></p>
+        <h2>Build the whole app on your machine.</h2>
+        <p><b>quickish&nbsp;dev</b> runs your entire backend locally, <b>quick.db</b>, <b>quick.sql</b>, server functions, file uploads, even the signed-in user, with no account and no network. Build and test the real thing offline, snapshot your data as you go, then publish it unchanged. Made for AI agents working in a sandbox.</p>
+      </div>
+      <div class="band-visual">
+        <div class="win">
+          <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="t">terminal</span></div>
+          <div class="screen term">
+            <div><span class="g">$</span> quickish dev<span class="cur"></span></div>
+            <div><span class="g">&#9679;</span> quick.db · quick.sql · quick.fn · files</div>
+            <div class="ok">✓ localhost:4321 · no account, no network</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PRICING ================= -->
+  <section class="band light" id="pricing">
+    <div class="inner">
+      <p class="eyebrow">Pricing</p>
+      <h2>Start free. Upgrade to light it all up.</h2>
+      <p>Free hosts a single live page, beautiful and private if you want. Paid keeps every page you’ve made live at once.</p>
+      <div class="tiers">
+        <div class="tier">
+          <div class="name">Free</div>
+          <div class="price">$0</div>
+          <div class="note">forever</div>
+          <ul>
+            <li>One live page (the latest you publish)</li>
+            <li>Public or private</li>
+            <li>Publish by drag &amp; drop, CLI, or AI</li>
+            <li><b>1 GB</b> storage &middot; <b>10 GB</b> bandwidth / mo</li>
+            <li>Your pages are kept, ready when you upgrade</li>
+          </ul>
+          <a class="cta ghost" href="/login?cb=https://quickish.website/app">Get started</a>
+        </div>
+        <div class="tier feature">
+          <div class="name">Personal Unlimited</div>
+          <div class="price">$7.99<small>/mo</small></div>
+          <div class="note">or $64.99/yr</div>
+          <ul>
+            <li>Unlimited live pages &amp; sub-pages</li>
+            <li>Everything in Free</li>
+            <li><b>5 GB</b> storage &middot; <b>50 GB</b> bandwidth / mo</li>
+            <li>For consumer Google accounts</li>
+          </ul>
+          <a class="cta primary" href="/login?cb=https://quickish.website/app">Go Unlimited</a>
+        </div>
+        <div class="tier">
+          <div class="name">Workspace Unlimited</div>
+          <div class="price">$99<small>/mo</small></div>
+          <div class="note">or $829/yr</div>
+          <ul>
+            <li>Up to <b>100 publishers</b>, unlimited viewers</li>
+            <li>Unlimited live pages, company-wide &amp; public sharing</li>
+            <li>Add more publishers for <b>$3/mo</b> ($24/yr) each</li>
+            <li><b>100 GB</b> storage &middot; <b>1 TB</b> bandwidth / mo</li>
+            <li>For Google Workspace domains</li>
+          </ul>
+          <a class="cta dark" href="/login?cb=https://quickish.website/app">Upgrade team</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="foot-cols">
+      <div class="foot-col">
+        <h4>Features</h4>
+        <a href="/features#hosting">Instant hosting</a>
+        <a href="/features#ai">Publish with AI</a>
+        <a href="/features#data">Data &amp; backend</a>
+        <a href="/features#functions">Functions</a>
+        <a href="/features#sql">quick.sql</a>
+        <a href="/features#sharing">Sharing &amp; permissions</a>
+        <a href="/features#domains">Custom domains</a>
+        <a href="/features#localish">Localish</a>
+        <a href="/features#dev">Develop locally</a>
+      </div>
+      <div class="foot-col">
+        <h4>Product</h4>
+        <a href="/features">Features</a>
+        <a href="/workspaces">Workspaces</a>
+        <a href="https://docs.quickish.website">Docs</a>
+        <a href="https://blog.quickish.website">Blog</a>
+        <a href="/#pricing">Pricing</a>
+        <a id="footsignin" href="/login?cb=https://quickish.website/app">Sign in</a>
+      </div>
+    </div>
+    <div class="foot-base">quickish.site &middot; quickish.space &middot; <a href="https://blog.quickish.website">Blog</a> &middot; <a href="mailto:support@quickish.site">Support</a> &middot; <a href="/privacy">Privacy</a> &middot; <a href="/terms">Terms</a></div>
+  </footer>
+
+  <script>
+    // Reflect signed-in state in the nav: swap "Sign in" -> "Control Panel" pointing
+    // straight at the dashboard (no /login -> Google round-trip). Same-origin check,
+    // so no third-party-cookie issues; purely cosmetic and degrades to "Sign in".
+    (function () {
+      const nav = document.getElementById("navsignin");
+      const foot = document.getElementById("footsignin");
+      if (!nav && !foot) return;
+      fetch("/app/api/session", { credentials: "same-origin" })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d || !d.signedIn) return;
+          if (nav) {
+            nav.href = "/app";
+            nav.innerHTML = '<span class="sfull">Control Panel</span><span class="sshort">Panel</span>';
+          }
+          if (foot) { foot.href = "/app"; foot.textContent = "Control Panel"; }
+        })
+        .catch(function () {});
+    })();
+
+    // One rotating list showing both personal and workspace URLs (no toggle).
+    const EXAMPLES = [
+      "you.quickish.site/deck",
+      "acme.quickish.space/townhall",
+      "tony.quickish.site/resume.html",
+      "globex.quickish.space/roadmap",
+      "jane.quickish.site/portfolio",
+      "initech.quickish.space/launch.html",
+      "sam.quickish.site/pitch.html",
+    ];
+    const urlEl = document.getElementById("url");
+    let idx = 0, ch = 0, deleting = false, timer = null;
+
+    function tick() {
+      const full = EXAMPLES[idx % EXAMPLES.length];
+      if (!deleting) {
+        ch++; urlEl.textContent = full.slice(0, ch);
+        if (ch >= full.length) { deleting = true; timer = setTimeout(tick, 1700); return; }
+        timer = setTimeout(tick, 70 + Math.random() * 45);
+      } else {
+        ch--; urlEl.textContent = full.slice(0, ch);
+        if (ch <= 0) { deleting = false; idx++; }
+        timer = setTimeout(tick, ch <= 0 ? 280 : 32);
+      }
+    }
+
+    // mobile nav: the text links collapse into a dropdown toggled by the menu button
+    (function () {
+      const menuBtn = document.getElementById("menubtn");
+      const navLinks = document.getElementById("navlinks");
+      if (!menuBtn || !navLinks) return;
+      const close = () => { navLinks.classList.remove("open"); menuBtn.setAttribute("aria-expanded", "false"); };
+      menuBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const open = navLinks.classList.toggle("open");
+        menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      navLinks.addEventListener("click", close);
+      document.addEventListener("click", (e) => { if (!navLinks.contains(e.target) && e.target !== menuBtn) close(); });
+    })();
+
+    // light / dark theme toggle
+    const themeBtn = document.getElementById("themebtn");
+    const syncThemeIcon = () => { themeBtn.textContent = document.documentElement.getAttribute("data-theme") === "light" ? "☾" : "☀"; };
+    syncThemeIcon();
+    themeBtn.onclick = () => {
+      const next = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", next);
+      try { localStorage.setItem("qk-theme", next); } catch (e) {}
+      syncThemeIcon();
+    };
+
+    // copy the install command from the hero pill
+    (function () {
+      const pill = document.getElementById("cmdpill"), copy = document.getElementById("cmdcopy");
+      if (!pill) return;
+      const CMD = "npm i -g quickish && quickish";
+      const doCopy = () => navigator.clipboard.writeText(CMD)
+        .then(() => { copy.textContent = "Copied"; setTimeout(() => copy.textContent = "Copy", 1400); }).catch(() => {});
+      pill.addEventListener("click", doCopy);
+      pill.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); doCopy(); } });
+    })();
+
+    // ---- Try-it dropzone: drop a file -> sign in with Google -> publish to your own account ----
+    (function () {
+      const ORIGIN = location.origin;
+      const dz = document.getElementById("trydrop");
+      const input = document.getElementById("tryfile");
+      const pick = document.getElementById("trypick");
+      const result = document.getElementById("tryresult");
+      if (!dz) return;
+
+      const readEntries = (reader) => new Promise((r) => reader.readEntries(r, () => r([])));
+      async function walk(entry, prefix, out) {
+        if (entry.isFile) { const f = await new Promise((r) => entry.file(r)); out.push({ file: f, path: prefix + entry.name }); }
+        else if (entry.isDirectory) { const rd = entry.createReader(); let batch; do { batch = await readEntries(rd); for (const c of batch) await walk(c, prefix + entry.name + "/", out); } while (batch.length); }
+      }
+      async function collect(dt) {
+        const out = [];
+        const entries = dt.items ? [...dt.items].map((it) => it.webkitGetAsEntry && it.webkitGetAsEntry()).filter(Boolean) : [];
+        if (entries.length) { for (const e of entries) await walk(e, "", out); }
+        else { for (const f of dt.files) out.push({ file: f, path: f.name }); }
+        return out;
+      }
+      function show(html) { dz.hidden = true; result.hidden = false; result.innerHTML = html; const a = document.getElementById("tryagain"); if (a) a.onclick = reset; }
+      function reset() { result.hidden = true; dz.hidden = false; input.value = ""; pending = null; }
+      function spinner(msg) { show('<div style="text-align:center"><span class="spin"></span><div class="meta" style="margin-top:14px">' + msg + '</div></div>'); }
+      function errCard(msg) { show('<div class="tryerr">' + msg + '</div><div class="tryrow"><button class="try-ghost" id="tryagain">Try again</button></div>'); }
+
+      let pending = null; // dropped files kept in memory across the sign-in popup
+      const tEsc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const tSlug = (s) => String(s).trim().replace(/^\/+|\/+$/g, "").toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "");
+
+      // Paid WORKSPACE accounts choose a destination (new / existing / their page),
+      // since company pages are shared. Everyone else publishes to root. Resolves to
+      // the chosen sub-page label ("" = root).
+      async function chooseTarget() {
+        let info; try { info = await (await fetch("/app/api/pages", { credentials: "same-origin" })).json(); } catch (e) { return ""; }
+        if (!(info && info.kind === "workspace" && info.paid)) return "";
+        const existing = (info.pages || []).filter(p => !p.isRoot);
+        return new Promise((resolve) => {
+          show('<div style="text-align:center"><div class="live">Where should this go?</div>'
+            + '<div class="meta" style="margin-top:8px">Your company space has shared pages, so pick a destination.</div>'
+            + '<div class="tryrow" style="justify-content:center;margin-top:14px">'
+            +   '<select id="tt-sel" class="try-ghost" style="padding:9px 12px">'
+            +     '<option value="__root__">Your page (root)</option>'
+            +     existing.map(p => '<option value="' + tEsc(p.site) + '">/' + tEsc(p.site) + '/</option>').join("")
+            +     '<option value="__new__">New sub-page&hellip;</option>'
+            +   '</select>'
+            +   '<input id="tt-new" placeholder="sub-page name" hidden style="padding:9px 12px;margin-left:8px">'
+            + '</div>'
+            + '<div class="tryrow"><button class="try-primary" id="tt-go">Publish here</button>'
+            + '<button class="try-ghost" id="tryagain">Cancel</button></div></div>');
+          const sel = document.getElementById("tt-sel"), ni = document.getElementById("tt-new"), go = document.getElementById("tt-go");
+          sel.onchange = () => { ni.hidden = sel.value !== "__new__"; if (!ni.hidden) ni.focus(); };
+          go.onclick = () => {
+            let sub = "";
+            if (sel.value === "__new__") sub = tSlug(ni.value);
+            else if (sel.value !== "__root__") sub = sel.value;
+            resolve(sub);
+          };
+        });
+      }
+
+      // Paid: several HTML pages with no index.html -> ask which is home (or a
+      // generated listing). Resolves to a filename, "__list__", or null (cancel).
+      function chooseIndexLanding(htmls) {
+        return new Promise((resolve) => {
+          const opt = (val, label, gen) => '<label class="iopt"><input type="radio" name="lidx" value="' + tEsc(val) + '">'
+            + '<span' + (gen ? ' style="color:var(--accent)"' : '') + '>' + label + '</span></label>';
+          show('<div><div class="live">Which page is home?</div>'
+            + '<div class="meta" style="margin:8px 0 14px">Several pages and no index.html. Pick the homepage or generate a listing.</div>'
+            + '<div style="display:flex;flex-direction:column;gap:6px;text-align:left;max-height:40vh;overflow:auto">'
+            +   htmls.map(h => opt(h, tEsc(h))).join("")
+            +   opt("__list__", "Generate a listing page", true)
+            + '</div>'
+            + '<div class="tryrow" style="margin-top:16px"><button class="try-primary" id="lidx-go">Publish</button>'
+            + '<button class="try-ghost" id="tryagain">Cancel</button></div></div>');
+          const radios = [...document.querySelectorAll('input[name="lidx"]')];
+          if (radios[0]) radios[0].checked = true;
+          document.getElementById("lidx-go").onclick = () => resolve(((radios.find(r => r.checked)) || {}).value || null);
+        });
+      }
+
+      // Signed in: mint a deploy token and push the files to the API as a live page.
+      async function publishAuthed(items) {
+        const sub = await chooseTarget();
+        let indexChoice = null;
+        const top = items.map(i => i.path).filter(p => p && !p.includes("/"));
+        const hasIndex = top.some(p => p.toLowerCase() === "index.html");
+        const htmls = top.filter(p => /\.html?$/i.test(p) && p.toLowerCase() !== "index.html");
+        if (!hasIndex && htmls.length >= 2) {
+          let paid = false;
+          try { const info = await (await fetch("/app/api/pages", { credentials: "same-origin" })).json(); paid = !!(info && info.paid); } catch (e) {}
+          if (paid) { indexChoice = await chooseIndexLanding(htmls); if (indexChoice === null) return reset(); }
+        }
+        spinner("Publishing your page&hellip;");
+        let token, api;
+        try {
+          const tr = await fetch("/app/api/deploy-token", { method: "POST", credentials: "same-origin" });
+          if (!tr.ok) throw new Error("auth");
+          const tj = await tr.json(); token = tj.token; api = tj.api;
+        } catch (e) { return errCard("Could not start the upload. Please try again."); }
+        const fd = new FormData(), paths = [];
+        items.forEach(({ file, path }) => { fd.append("f", file, file.name); paths.push(path); });
+        fd.append("paths", JSON.stringify(paths));
+        try {
+          const r = await fetch(api + "/_cli/deploy-files"
+            + (sub ? "?path=" + encodeURIComponent(sub) : "")
+            + (indexChoice ? (sub ? "&" : "?") + "index=" + encodeURIComponent(indexChoice) : ""),
+            { method: "POST", headers: { authorization: "Bearer " + token }, body: fd });
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok) return errCard(j.error || "Publish failed. Please try again.");
+          const bare = j.url.replace(/^https:\/\//, "").replace(/\/$/, "");
+          show('<div style="text-align:center"><div class="live">&#10003; Your page is live</div>'
+            + '<a class="url" href="' + j.url + '" target="_blank" rel="noopener">' + bare + '</a>'
+            + (j.note ? '<div class="meta" style="color:var(--accent)">' + j.note + '</div>' : '')
+            + (j.warning ? '<div class="meta" style="color:#d8a200">' + j.warning + '</div>' : '')
+            + '<div class="meta">Saved to your account. Update or manage it anytime from your dashboard.</div>'
+            + '<div class="tryrow"><a class="try-primary" href="/app">Open dashboard</a>'
+            + '<button class="try-ghost" id="tryagain">Publish another</button></div></div>');
+        } catch (e) { errCard("Upload failed. Check your connection and try again."); }
+      }
+
+      // Open Google sign-in in a popup; the landing tab keeps the files in memory
+      // and publishes as soon as the popup reports back (or closes signed-in).
+      function signInThenPublish() {
+        const w = window.open("/login?cb=" + encodeURIComponent(ORIGIN + "/auth/popup-done"), "qk-signin", "width=480,height=680");
+        if (!w) { location.href = "/login?cb=" + encodeURIComponent(ORIGIN + "/app"); return; } // popup blocked
+        spinner("Waiting for Google sign-in&hellip;");
+        let done = false;
+        const onMsg = (e) => {
+          if (e.origin !== ORIGIN || e.data !== "qk-auth-ok") return;
+          done = true; window.removeEventListener("message", onMsg);
+          if (pending) publishAuthed(pending);
+        };
+        window.addEventListener("message", onMsg);
+        const poll = setInterval(() => {
+          if (!w.closed) return;
+          clearInterval(poll);
+          if (!done) { window.removeEventListener("message", onMsg); if (pending) start(pending); } // re-check + retry
+        }, 600);
+      }
+
+      // Entry point: publish if already signed in, otherwise show a sign-in card.
+      async function start(items) {
+        items = (items || []).filter((x) => x && x.file);
+        if (!items.length) return;
+        pending = items;
+        spinner("Reading your files&hellip;");
+        let signedIn = false;
+        try { const tr = await fetch("/app/api/deploy-token", { method: "POST", credentials: "same-origin" }); signedIn = tr.ok; } catch (e) {}
+        if (signedIn) return publishAuthed(items);
+        show('<div style="text-align:center"><div class="live">&#9889; Ready to publish</div>'
+          + '<div class="meta" style="margin-top:8px">Sign in with Google and your page goes live on your own Quickish account, free.</div>'
+          + '<div class="tryrow"><button class="try-primary" id="trysignin">Sign in with Google</button>'
+          + '<button class="try-ghost" id="tryagain">Choose another</button></div></div>');
+        const b = document.getElementById("trysignin"); if (b) b.onclick = signInThenPublish;
+      }
+
+      ["dragenter", "dragover"].forEach((ev) => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.add("drag"); }));
+      ["dragleave", "dragend"].forEach((ev) => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.remove("drag"); }));
+      dz.addEventListener("drop", async (e) => { e.preventDefault(); dz.classList.remove("drag"); start(await collect(e.dataTransfer)); });
+      dz.addEventListener("click", (e) => { if (e.target.id !== "trypick") input.click(); });
+      dz.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+      pick.addEventListener("click", (e) => { e.stopPropagation(); input.click(); });
+      input.addEventListener("change", () => start([...input.files].map((f) => ({ file: f, path: f.name }))));
+    })();
+
+    tick();
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,13 @@
+PyQt6>=6.7.0
+opencv-python>=4.9.0
+av>=12.0.0
+numpy>=1.26.0
+mss>=9.0.1
+pywin32>=306
+pycaw>=20240210
+psutil>=5.9.8
+pyaudiowpatch>=0.2.12.7
+pyaudio>=0.2.14
+mediapipe>=0.10.14
+onnxruntime>=1.17.0
+tokenizers>=0.15.0
